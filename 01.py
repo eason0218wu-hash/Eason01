@@ -114,8 +114,8 @@ class DayTradeSniper:
 # ================= 3. 主程式執行區 =================
 if __name__ == "__main__":
     # 請在這裡填入你的 Telegram Bot Token 和 Chat ID
-    TOKEN = "8180918942:AAFXkzX-95J3zQR010RcOXVFU09cyHJaswk"     # 例如 "1234567890:ABCdefGHIjklmNOPqrsTUVwxyz"
-    CHAT_ID = "7836204601"     # 例如 "123456789"
+    TOKEN = "8557890092:AAE99pDVzx3dPBiTN9h0LMHBQ9dhRKtuHAs"     # 例如 "1234567890:ABCdefGHIjklmNOPqrsTUVwxyz"
+    CHAT_ID = "6077073014"     # 例如 "123456789"
 
     # 建立通知器與監控器
     tg_bot = TelegramNotifier(bot_token=TOKEN, chat_id=CHAT_ID)
