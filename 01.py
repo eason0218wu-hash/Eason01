@@ -28,11 +28,78 @@ class TelegramNotifier:
 class DayTradeSniper:
     def __init__(self, notifier):
         self.notifier = notifier
-        # 監控清單（可自行增減股票代號與名稱）
+        # 監控清單（共 70 檔，可自行增減）
         self.watchlist = [
             {'stock_id': '2330', 'name': '台積電'},
+            {'stock_id': '2317', 'name': '鴻海'},
+            {'stock_id': '2454', 'name': '聯發科'},
+            {'stock_id': '2303', 'name': '聯電'},
+            {'stock_id': '2412', 'name': '中華電'},
+            {'stock_id': '2881', 'name': '富邦金'},
+            {'stock_id': '2882', 'name': '國泰金'},
+            {'stock_id': '2891', 'name': '中信金'},
+            {'stock_id': '2886', 'name': '兆豐金'},
+            {'stock_id': '2884', 'name': '玉山金'},
+            {'stock_id': '2885', 'name': '元大金'},
+            {'stock_id': '2892', 'name': '第一金'},
+            {'stock_id': '5880', 'name': '合庫金'},
+            {'stock_id': '1303', 'name': '南亞'},
+            {'stock_id': '1326', 'name': '台化'},
+            {'stock_id': '1301', 'name': '台塑'},
+            {'stock_id': '2002', 'name': '中鋼'},
+            {'stock_id': '1216', 'name': '統一'},
+            {'stock_id': '3045', 'name': '台灣大'},
+            {'stock_id': '4904', 'name': '遠傳'},
+            {'stock_id': '2308', 'name': '台達電'},
+            {'stock_id': '2382', 'name': '廣達'},
             {'stock_id': '3231', 'name': '緯創'},
-            # 可繼續加入，例如 {'stock_id': '2454', 'name': '聯發科'}
+            {'stock_id': '2356', 'name': '英業達'},
+            {'stock_id': '2357', 'name': '華碩'},
+            {'stock_id': '2376', 'name': '技嘉'},
+            {'stock_id': '2345', 'name': '智邦'},
+            {'stock_id': '3034', 'name': '聯詠'},
+            {'stock_id': '3037', 'name': '欣興'},
+            {'stock_id': '8046', 'name': '南電'},
+            {'stock_id': '3189', 'name': '景碩'},
+            {'stock_id': '3481', 'name': '群創'},
+            {'stock_id': '2409', 'name': '友達'},
+            {'stock_id': '3711', 'name': '日月光投控'},
+            {'stock_id': '6669', 'name': '緯穎'},
+            {'stock_id': '3443', 'name': '創意'},
+            {'stock_id': '6531', 'name': '愛普'},
+            {'stock_id': '4968', 'name': '立積'},
+            {'stock_id': '8016', 'name': '矽創'},
+            {'stock_id': '6415', 'name': '矽力-KY'},
+            {'stock_id': '5269', 'name': '祥碩'},
+            {'stock_id': '3008', 'name': '大立光'},
+            {'stock_id': '2498', 'name': '宏達電'},
+            {'stock_id': '2912', 'name': '統一超'},
+            {'stock_id': '2915', 'name': '潤泰全'},
+            {'stock_id': '9945', 'name': '潤泰新'},
+            {'stock_id': '1101', 'name': '台泥'},
+            {'stock_id': '1102', 'name': '亞泥'},
+            {'stock_id': '1402', 'name': '遠東新'},
+            {'stock_id': '1476', 'name': '儒鴻'},
+            {'stock_id': '2207', 'name': '和泰車'},
+            {'stock_id': '2301', 'name': '光寶科'},
+            {'stock_id': '2327', 'name': '國巨'},
+            {'stock_id': '2379', 'name': '瑞昱'},
+            {'stock_id': '2385', 'name': '群光'},
+            {'stock_id': '2395', 'name': '研華'},
+            {'stock_id': '2408', 'name': '南亞科'},
+            {'stock_id': '2449', 'name': '京元電子'},
+            {'stock_id': '3035', 'name': '智原'},
+            {'stock_id': '3105', 'name': '穩懋'},
+            {'stock_id': '3533', 'name': '嘉澤'},
+            {'stock_id': '3653', 'name': '健策'},
+            {'stock_id': '3661', 'name': '世芯-KY'},
+            {'stock_id': '4763', 'name': '材料-KY'},
+            {'stock_id': '5274', 'name': '信驊'},
+            {'stock_id': '5483', 'name': '中美晶'},
+            {'stock_id': '6176', 'name': '瑞儀'},
+            {'stock_id': '6269', 'name': '台郡'},
+            {'stock_id': '6271', 'name': '同欣電'},
+            {'stock_id': '6789', 'name': '采鈺'},
         ]
         # 記錄已經觸發過的股票，避免重複發送
         self.triggered_stocks = set()
@@ -114,8 +181,8 @@ class DayTradeSniper:
 # ================= 3. 主程式執行區 =================
 if __name__ == "__main__":
     # 請在這裡填入你的 Telegram Bot Token 和 Chat ID
-    TOKEN = "8557890092:AAE99pDVzx3dPBiTN9h0LMHBQ9dhRKtuHAs"     # 例如 "1234567890:ABCdefGHIjklmNOPqrsTUVwxyz"
-    CHAT_ID = "6077073014"     # 例如 "123456789"
+    TOKEN = "8557890092:AAE99pDVzx3dPBiTN9h0LMHBQ9dhRKtuHAs" # 例如 "1234567890:ABCdefGHIjklmNOPqrsTUVwxyz"
+    CHAT_ID = "6077073014" # 例如 "123456789"
 
     # 建立通知器與監控器
     tg_bot = TelegramNotifier(bot_token=TOKEN, chat_id=CHAT_ID)
