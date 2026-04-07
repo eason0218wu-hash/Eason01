@@ -29,31 +29,42 @@ class LimitUpSniper:
         self.triggered_stage2 = set()
 
     def fetch_hot_stocks(self):
-        """自動爬取 Yahoo 股市『成交值排行榜』前 50 名作為今日飆股名單"""
-        print("🕸️ 開始爬取今日熱門飆股...")
+        """自動爬取 Yahoo 股市『成交值排行榜』，最多抓 50 名"""
+        print("🕸️ 嘗試爬取今日熱門飆股...")
         try:
             url = "https://tw.stock.yahoo.com/rank/turnover"
             res = self.session.get(url, timeout=10)
             soup = BeautifulSoup(res.text, 'html.parser')
 
-            links = soup.find_all('a', href=re.compile(r'/quote/\d{4,5}$'))
+            # 🚀 強化版：放寬網址比對條件，只要有 /quote/數字 就抓！
+            links = soup.find_all('a', href=re.compile(r'/quote/\d+'))
 
             hot_stocks = []
             for link in links:
-                stock_id = link['href'].split('/')[-1]
-                stock_name = link.text.strip()
-                if stock_id not in [s['stock_id'] for s in hot_stocks]:
-                    hot_stocks.append({'stock_id': stock_id, 'name': stock_name})
-                    if len(hot_stocks) >= 50:
-                        break
+                # 🚀 強化版：精準從網址中把「純數字」的股票代號萃取出來
+                match = re.search(r'/quote/(\d+)', link.get('href', ''))
+                if match:
+                    stock_id = match.group(1)
+                    stock_name = link.text.strip()
+                    
+                    # 避免抓到空字串，且確保不重複
+                    if stock_name and stock_id not in [s['stock_id'] for s in hot_stocks]:
+                        hot_stocks.append({'stock_id': stock_id, 'name': stock_name})
+                        if len(hot_stocks) >= 50:
+                            break
 
             self.watchlist = hot_stocks
-            stock_names_str = ", ".join([s['name'] for s in hot_stocks[:8]]) + "..."
-            self.notifier.send_alert(f"🤖 *爬蟲完畢*：已自動鎖定今日 {len(self.watchlist)} 檔熱門飆股。\n目標包含：{stock_names_str}")
-            print(f"✅ 成功抓取 {len(self.watchlist)} 檔股票。")
+
+            # 如果有抓到東西，才印出訊息
+            if len(self.watchlist) > 0:
+                stock_names_str = ", ".join([s['name'] for s in hot_stocks[:8]]) + "..."
+                self.notifier.send_alert(f"🤖 *爬蟲完畢*：已鎖定今日 {len(self.watchlist)} 檔熱門飆股。\n目標包含：{stock_names_str}")
+                print(f"✅ 成功抓取 {len(self.watchlist)} 檔股票。")
+            else:
+                print("⚠️ 網頁抓取成功，但沒有找到符合條件的股票代號。")
+
         except Exception as e:
             print(f"❌ 爬蟲失敗: {e}")
-            self.notifier.send_alert("⚠️ 抓取熱門飆股失敗，請檢查程式或網路。")
 
     def get_realtime_price(self, stock_id):
         """取得即時報價，並自動判斷/記憶上市(tse)或上櫃(otc)"""
@@ -127,20 +138,37 @@ class LimitUpSniper:
                 self.triggered_stage1.add(stock_id)
 
     def run_daily_monitor(self, interval_seconds=15):
-        # 1. 程式啟動時先抓熱門名單
-        self.fetch_hot_stocks()
+        print("🚀 啟動前置作業，等待股市開盤資料...")
 
-        self.notifier.send_alert("🔔 *大富翁飆股雷達已啟動*\n開始盤中監控，祝今天比賽順利！")
-        print("🚀 開始盤中監控...")
+        # 【死纏爛打抓取機制】：名單是 0 檔的時候，就一直等、一直重試
+        while len(self.watchlist) == 0:
+            now = datetime.datetime.now()
+
+            # 萬一遇到國定假日整天都沒開盤，時間到了還是要強制下班
+            if (now.hour == 13 and now.minute >= 35) or now.hour >= 14:
+                print("🏁 今日無股市資料且已達下班時間，程式自動關閉！")
+                self.notifier.send_alert("🏁 *今日疑似休市，雷達自動關機，明天見！*")
+                return # 直接結束程式
+
+            self.fetch_hot_stocks()
+
+            if len(self.watchlist) > 0:
+                break # 只要抓到大於 0 檔，就打破迴圈開始監控！
+            else:
+                print("⏳ 尚未抓到飆股名單 (可能還沒開盤或清盤中)，等待 60 秒後重試...")
+                time.sleep(60)
+
+        self.notifier.send_alert("🔔 *大富翁飆股雷達已就緒*\n已鎖定目標，開始盤中激戰！")
+        print("🚀 正式開始盤中監控...")
 
         while True:
             now = datetime.datetime.now()
 
-            # 【完美下班邏輯】：只要是 13:35 以後，或是下午 2 點(14:00)以後，強制下班
+            # 【完美下班邏輯】
             if (now.hour == 13 and now.minute >= 35) or now.hour >= 14:
                 print("🏁 股市已收盤，程式自動下班！")
                 self.notifier.send_alert("🏁 *今日台股已收盤，監控結束，明天見！*")
-                break # 打破迴圈，順利結束 Github Action
+                break 
 
             # 09:00 ~ 13:30 正常監控
             if 9 <= now.hour <= 13:
@@ -149,7 +177,6 @@ class LimitUpSniper:
             time.sleep(interval_seconds)
 
 if __name__ == "__main__":
-    # 使用你最新的 Token 和 Chat ID
     TOKEN = "8557890092:AAE99pDVzx3dPBiTN9h0LMHBQ9dhRKtuHAs" 
     CHAT_ID = "6077073014" 
 
