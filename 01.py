@@ -49,13 +49,13 @@ class LimitUpSniper:
                         break
 
             self.watchlist = hot_stocks
-            
+
             # 如果有抓到東西，才印出訊息
             if len(self.watchlist) > 0:
                 stock_names_str = ", ".join([s['name'] for s in hot_stocks[:8]]) + "..."
                 self.notifier.send_alert(f"🤖 *爬蟲完畢*：已鎖定今日 {len(self.watchlist)} 檔熱門飆股。\n目標包含：{stock_names_str}")
                 print(f"✅ 成功抓取 {len(self.watchlist)} 檔股票。")
-                
+
         except Exception as e:
             print(f"❌ 爬蟲失敗: {e}")
             # 只有在真的發生錯誤時才通知，單純沒資料不通知
@@ -137,15 +137,15 @@ class LimitUpSniper:
         # 【死纏爛打抓取機制】：名單是 0 檔的時候，就一直等、一直重試
         while len(self.watchlist) == 0:
             now = datetime.datetime.now()
-            
+
             # 萬一遇到國定假日整天都沒開盤，時間到了還是要強制下班
             if (now.hour == 13 and now.minute >= 35) or now.hour >= 14:
                 print("🏁 今日無股市資料且已達下班時間，程式自動關閉！")
                 self.notifier.send_alert("🏁 *今日疑似休市，雷達自動關機，明天見！*")
                 return # 直接結束程式
-            
+
             self.fetch_hot_stocks()
-            
+
             if len(self.watchlist) > 0:
                 break # 只要抓到大於 0 檔，就打破迴圈開始監控！
             else:
