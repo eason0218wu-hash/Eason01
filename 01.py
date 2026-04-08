@@ -28,7 +28,7 @@ class LimitUpSniper:
         self.triggered_stage1 = set()
         self.triggered_stage2 = set()
 
-        def fetch_hot_stocks(self):
+    def fetch_hot_stocks(self):
         """自動爬取 Yahoo 股市『成交值排行榜』，最多抓 50 名"""
         print("🕸️ 嘗試爬取今日熱門飆股...")
         try:
@@ -87,7 +87,6 @@ class LimitUpSniper:
 
         except Exception as e:
             print(f"❌ 爬蟲失敗: {e}")
-
 
     def get_realtime_price(self, stock_id):
         """取得即時報價，並自動判斷/記憶上市(tse)或上櫃(otc)"""
@@ -200,7 +199,7 @@ class LimitUpSniper:
             time.sleep(interval_seconds)
 
 if __name__ == "__main__":
-    TOKEN = "8557890092:AAE99pDVzx3dPBiTN9h0LMHBQ9dhRKtuHAs"
+    TOKEN = "8557890092:AAE99pDVzx3dPBiTN9h0LMHBQ9dhRKtuHAs" 
     CHAT_ID = "6077073014" 
 
     tg_bot = TelegramNotifier(bot_token=TOKEN, chat_id=CHAT_ID)
