@@ -28,7 +28,7 @@ class LimitUpSniper:
         self.triggered_stage1 = set()
         self.triggered_stage2 = set()
 
-    def fetch_hot_stocks(self):
+        def fetch_hot_stocks(self):
         """自動爬取 Yahoo 股市『成交值排行榜』，最多抓 50 名"""
         print("🕸️ 嘗試爬取今日熱門飆股...")
         try:
@@ -36,36 +36,48 @@ class LimitUpSniper:
             res = self.session.get(url, timeout=10)
             soup = BeautifulSoup(res.text, 'html.parser')
 
-            links = soup.find_all('a', href=re.compile(r'/quote/\d+'))
+            # 策略：暴力抓取所有連結，不再依賴容易變動的 class 名稱
+            links = soup.find_all('a')
 
             hot_stocks = []
             for link in links:
-                match = re.search(r'/quote/(\d+)', link.get('href', ''))
+                href = link.get('href', '')
+                
+                # 確保網址是股票代碼格式 (第一碼是數字，總長 4~6 碼，例如 2330, 00632R)
+                match = re.search(r'/quote/(\d[0-9A-Za-z]{3,5})', href)
                 if match:
                     stock_id = match.group(1)
-                    
-                    # 嘗試往下尋找真正包含股票名稱的 div (過濾掉網頁上的其他無關連結)
-                    name_element = link.find('div', class_=re.compile(r'Fw\(600\)'))
-                    if name_element:
-                        stock_name = name_element.text.strip()
-                    else:
-                        stock_name = link.text.strip()
 
-                    # 🛡️ 終極過濾器：排除空字串、排除按鈕名稱、限制長度
-                    invalid_keywords = ['估價', '走勢', '技術', '籌碼', '新聞', '分析']
-                    is_valid_name = True
-                    for kw in invalid_keywords:
-                        if kw in stock_name:
-                            is_valid_name = False
-                            break
+                    # 將連結內的文字全部抓出來，並強制濾除數字、英文、小數點、加減號和空白
+                    # 這樣 "台積電 2330.TW +10.0" 就會被洗成乾淨的 "台積電"
+                    raw_text = link.text.strip()
+                    clean_name = re.sub(r'[0-9A-Za-z\.\+\-\%\s\,]', '', raw_text).strip()
+
+                    # 🛡️ 終極黑名單：擋掉網頁上的各種無關按鈕
+                    invalid_keywords = [
+                        '估價', '走勢', '技術', '籌碼', '新聞', '分析', '健診', 
+                        '個股', '排行', '首頁', '登入', '信箱', '理財', '字典', '搜尋'
+                    ]
                     
-                    if is_valid_name and 1 < len(stock_name) <= 6 and stock_id not in [s['stock_id'] for s in hot_stocks]:
-                        hot_stocks.append({'stock_id': stock_id, 'name': stock_name})
-                        if len(hot_stocks) >= 50:
+                    is_valid = True
+                    for kw in invalid_keywords:
+                        if kw in clean_name:
+                            is_valid = False
                             break
+
+                    # 股票名稱通常是 2~10 個中文字 (包含 ETF)
+                    if is_valid and 2 <= len(clean_name) <= 10:
+                        # 確保不重複加入
+                        if stock_id not in [s['stock_id'] for s in hot_stocks]:
+                            hot_stocks.append({'stock_id': stock_id, 'name': clean_name})
+                            
+                            # 只要滿 50 檔就不抓了
+                            if len(hot_stocks) >= 50:
+                                break
 
             self.watchlist = hot_stocks
 
+            # 如果有抓到東西，才印出訊息
             if len(self.watchlist) > 0:
                 stock_names_str = ", ".join([s['name'] for s in hot_stocks[:8]]) + "..."
                 self.notifier.send_alert(f"🤖 *爬蟲完畢*：已鎖定今日 {len(self.watchlist)} 檔熱門飆股。\n目標包含：{stock_names_str}")
@@ -75,6 +87,7 @@ class LimitUpSniper:
 
         except Exception as e:
             print(f"❌ 爬蟲失敗: {e}")
+
 
     def get_realtime_price(self, stock_id):
         """取得即時報價，並自動判斷/記憶上市(tse)或上櫃(otc)"""
