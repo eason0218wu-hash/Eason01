@@ -187,7 +187,7 @@ class LimitUpSniper:
             time.sleep(interval_seconds)
 
 if __name__ == "__main__":
-    TOKEN = "8557890092:AAE99pDVzx3dPBiTN9h0LMHBQ9dhRKtuHAs" 
+    TOKEN ="8614715770:AAHg9HrXqoelVwl3Eex4Ex8N_easiJPNSL0” 
     CHAT_ID = "6077073014" 
 
     tg_bot = TelegramNotifier(bot_token=TOKEN, chat_id=CHAT_ID)
